@@ -7,9 +7,9 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace GroupBuilder {
+namespace GrouperApp {
     
     
-    public partial class Thanks {
+    public partial class ThankYou {
     }
 }

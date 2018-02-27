@@ -5,12 +5,13 @@ using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.Data;
+using GroupBuilder;
 
-namespace GroupBuilder
+namespace GrouperApp
 {
     public partial class _Default : Page
     {
-        private static bool TEST_FLAG = true;
+        private static bool TEST_FLAG = false;
 
         private string _GUID;
         protected string GUID
@@ -41,8 +42,11 @@ namespace GroupBuilder
                     if (!String.IsNullOrEmpty(GUID))
                     {
                         _Student = GrouperMethods.GetStudentByGUID(GUID);
-                        // Bad GUID - so, give them back an empty student
+                    } else // Bad GUID - so, give them back an empty student
+                    {
+                        _Student = new Student();
                     }
+
                 }
                 return _Student;
             }
@@ -54,17 +58,17 @@ namespace GroupBuilder
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            if (ThisStudent == null)
+            {
+                ThisStudent = new Student();
+            }
+
             if (!TEST_FLAG)
             {
                 if (ThisStudent.SurveySubmittedDate != null)
                 {
                     Response.Redirect("Oops.aspx");
                 }
-            }
-
-            if (ThisStudent == null)
-            {
-                ThisStudent = new Student();
             }
 
             if (!IsPostBack)
@@ -78,8 +82,8 @@ namespace GroupBuilder
                 LanguagesRepeater_BindRepeater();
                 SkillsRepeater_BindRepeater();
 
-                //CurrentCoursesDropDownList.DataSource = GrouperMethods.GetCourses();
-                //CurrentCoursesDropDownList.DataBind();
+                CurrentCoursesDropDownList.DataSource = GrouperMethods.GetCourses();
+                CurrentCoursesDropDownList.DataBind();
             }
 
         }
@@ -126,6 +130,25 @@ namespace GroupBuilder
 
             //Set prefered name
             student.PreferredName = PreferedNameTextBox.Text;
+
+            //Set UOID
+            student.UOID = int.Parse(UOIDTextBox.Text);
+
+            //Set Primary/Secondary language info
+            if (SecondLanguageDropDownList.SelectedIndex > 0)
+            {
+                student.EnglishSecondLanguageFlag = true;
+                student.NativeLanguage = SecondLangTextBox.Text;
+            }
+
+            //Set current courses
+            if (ViewState["CurrentCourses"] != null)
+            {
+                foreach (Course curCourse in ((List<Course>)ViewState["CurrentCourses"]))
+                {
+                    student.CurrentCourses.Add(curCourse);
+                }
+            }
 
             //Set prior courses
             foreach (RepeaterItem courseItem in ClassesRepeater.Items)
@@ -200,6 +223,12 @@ namespace GroupBuilder
                 }
             }
 
+            //Get dev. experience
+            student.DevelopmentExperience = DevelopmentExperienceTextBox.Text;
+
+            //Get learning expectations
+            student.LearningExpectations = LearningExpectationsTextBox.Text;
+
             //Update Database
             GrouperMethods.UpdateStudent(student);
 
@@ -215,17 +244,42 @@ namespace GroupBuilder
                 int courseID = int.Parse(CurrentCoursesDropDownList.SelectedValue);
 
                 Course course = GrouperMethods.GetCourse(courseID);
-
+                
                 if (ViewState["CurrentCourses"] == null)
                 {
                     ViewState["CurrentCourses"] = new List<Course>();
+                }
+                else //Check if the use is trying to select a course they've already selected
+                {
+                    foreach (Course curCourse in ((List<Course>)ViewState["CurrentCourses"]))
+                    {
+                        if (curCourse.CourseID == courseID) //They've already selected this course, so don't re-add it
+                        {
+                            return;
+                        }
+                    }
                 }
 
                 ((List<Course>)ViewState["CurrentCourses"]).Add(course);
 
                 CurrentCoursesGridView.DataSource = (List<Course>)ViewState["CurrentCourses"];
                 CurrentCoursesGridView.DataBind();
+            }
+        }
 
+        protected void SecondLangDropDownList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (SecondLanguageDropDownList.SelectedIndex > 0)
+            {
+                SecondLangTextBoxLabel.Text = "Please enter your primary language:";
+                SecondLangTextBoxLabel.Visible = true;
+                SecondLangTextBox.Visible = true;
+
+            }
+            else
+            {
+                SecondLangTextBoxLabel.Visible = false;
+                SecondLangTextBox.Visible = false;
             }
         }
 

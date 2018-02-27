@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace GroupBuilder {
+namespace GrouperApp {
     
     
     public partial class SiteMaster {

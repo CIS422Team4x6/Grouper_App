@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace GroupBuilder {
+namespace GrouperApp {
     
     
     public partial class _Default {
@@ -47,6 +47,42 @@ namespace GroupBuilder {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.TextBox UOIDTextBox;
+        
+        /// <summary>
+        /// SecondLangDropDownLabel control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label SecondLangDropDownLabel;
+        
+        /// <summary>
+        /// SecondLanguageDropDownList control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.DropDownList SecondLanguageDropDownList;
+        
+        /// <summary>
+        /// SecondLangTextBoxLabel control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label SecondLangTextBoxLabel;
+        
+        /// <summary>
+        /// SecondLangTextBox control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox SecondLangTextBox;
         
         /// <summary>
         /// CurrentCoursesDropDownList control.

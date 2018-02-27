@@ -1,9 +1,8 @@
-﻿<%@ Page Title="Team Formation Survey" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="Default.aspx.cs" Inherits="GroupBuilder._Default" %>
-
+﻿<%@ Page Title="Team Formation Survey" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="Default.aspx.cs" Inherits="GrouperApp._Default" %>
 <asp:Content ID="BodyContent" ContentPlaceHolderID="MainContent" runat="server">
 
     <div class="jumbotron">
-        <h2>Welcome <asp:Label ID="FirstNameLabel" runat=server />&nbsp;<asp:Label ID="LastNameLabel" runat="server" />!</h2>
+        <h2>Welcome <asp:Label ID="FirstNameLabel" runat="server" />&nbsp;<asp:Label ID="LastNameLabel" runat="server" />!</h2>
         <h4>This information will be used for group formation.</h4>
     </div>
 
@@ -24,10 +23,26 @@
             </div>
         </div>
     </div>
+    <div class="row">
+        <div class="col-md-3">
+            <asp:Label ID="SecondLangDropDownLabel" runat="server" text="Is English your primary language?" CssClass="control-label small"></asp:Label>
+            <asp:DropDownList ID="SecondLanguageDropDownList" runat="server" CssClass="form-control" AutoPostBack="true" OnSelectedIndexChanged="SecondLangDropDownList_SelectedIndexChanged">
+                <asp:ListItem Text="Yes" Value ="1"></asp:ListItem>
+                <asp:ListItem Text="No" Value ="0"></asp:ListItem>
+            </asp:DropDownList>
+        </div>
+        <div class="col-md-6">
+            <asp:Label ID="SecondLangTextBoxLabel" runat="server" CssClass="control-label" Visable="false"></asp:Label>
+            <asp:TextBox ID ="SecondLangTextBox" runat="server" Text="Dothraki" Visible="false" MaxLength="100" CssClass="form-control"></asp:TextBox>
+        </div>
+    </div>
+
+    <br />
+    <h4>CIS Course Experience</h4>
 
     <div class="row">
         <div class="col-md-3">
-            <label class="control-label">Course: </label>
+            <label class="control-label">Current Courses: </label>
             <asp:DropDownList ID="CurrentCoursesDropDownList" runat="server" CssClass="form-control" DataTextField="FullName" DataValueField="CourseID" AutoPostBack="true" AppendDataBoundItems="true" OnSelectedIndexChanged="CurrentCoursesDropDownList_SelectedIndexChanged">
                 <asp:ListItem Text="Select..." Value=""></asp:ListItem>
             </asp:DropDownList>
@@ -45,9 +60,8 @@
             </asp:GridView>
         </div>
     </div>
-    <br />
-    <h4>CIS Course History</h4>
 
+    <br />
 
     <asp:Repeater ID="ClassesRepeater" runat="server">
         <HeaderTemplate>

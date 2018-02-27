@@ -4,8 +4,9 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
 
-namespace GroupBuilder
+namespace GroupBuilder 
 {
+    [Serializable]
     public class Course
     {
         public int CourseID { get; set; }
@@ -88,6 +89,10 @@ namespace GroupBuilder
         public string TermName { get; set; }
         public int Year { get; set; }
         public bool? CurrentCourseSectionFlag { get; set; }
+        public string DaysOfWeek { get; set; }
+        public int? CRN { get; set; }
+        public DateTime? StartTime { get; set; }
+        public DateTime? EndTime { get; set; }
         public DateTime? CreatedDate { get; set; }
         public List<Group> Groups { get; set; }
         public List<Student> Students { get; set; }
@@ -127,16 +132,84 @@ namespace GroupBuilder
         public int StudentID { get; set; }
         public int InstructorCourseID { get; set; }
         public string DuckID { get; set; }
-        public int UOID { get; set; }
+        public int? UOID { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string PreferredName { get; set; }
-        public int? OutgoingLevel { get; set; }
+        public int? OutgoingLevel { get; set;}
         public string DevelopmentExperience { get; set; }
         public string LearningExpectations { get; set; }
         public string ContributingRole { get; set; }
+        public bool? EnglishSecondLanguageFlag { get; set; }
+        public string NativeLanguage { get; set; }
         public string OtherProgrammingLanguage { get; set; }
         public int? OtherProgrammingLanguageProficiency { get; set; }
+        public string ProgrammingLanguagesDescription { get
+        {
+                string languages = "";
+                foreach (ProgrammingLanguage language in Languages.OrderByDescending(x => x.ProficiencyLevel))
+                {
+                    switch (language.Name)
+                    {
+                        case "Java":
+                            languages += "<span class='fas fa-coffee fa-lg' title='Java " + language.ProficiencyLevel.ToString() + "'></span>";
+                            break;
+                        case "Python":
+                            languages += "<span class='fab fa-python fa-lg' title='Python " + language.ProficiencyLevel.ToString() + "'></span>";
+                            break;
+                        case "Android":
+                            languages += "<span class='fab fa-android fa-lg' title='Android " + language.ProficiencyLevel.ToString() + "'></span>";
+                            break;
+                        case "Web Programming (PHP)":
+                            languages += "<span class='fab fa-php fa-lg' title='Web Programming " + language.ProficiencyLevel.ToString() + "'></span>";
+                            break;
+                        case "Web Design (HTML/XML)":
+                            languages += "<span class='fab fa-html5 fa-lg' title='Web Design " + language.ProficiencyLevel.ToString() + "'></span>";
+                            break;
+                        case "C++":
+                            languages += "<span style='font-size: medium; font-family: Courier; font-weight: bold; margin-left: 3px; margin-right: 3px;' title='" + language.ProficiencyLevel.ToString() + "'>C++</span>";
+                            break;
+                        case "C":
+                            languages += "<span style='font-size: medium; font-family: Courier; font-weight: bold; margin-left: 3px; margin-right: 3px;' title='" + language.ProficiencyLevel.ToString() + "'>C</span>";
+                            break;
+                    }
+                }
+                return languages;
+            }
+        }
+
+        public string RolesDescription
+        {
+            get
+            {
+                string roles = "";
+                foreach (Role role in InterestedRoles.OrderByDescending(x => x.InterestLevel))
+                {
+                    switch (role.Name)
+                    {
+                        case "Programmer":
+                            roles += "<span class='fas fa-code fa-lg' title='Programmer " + role.InterestLevel.ToString() + "'></span>";
+                            break;
+                        case "Quality Assurance (Testing)":
+                            roles += "<span class='fas fa-bug fa-lg' title='QA Tester" + role.InterestLevel.ToString() + "'></span>";
+                            break;
+                        case "Technical Writer":
+                            roles += "<span class='far fa-edit fa-lg' title='Writer " + role.InterestLevel.ToString() + "'></span>";
+                            break;
+                        case "Manager":
+                            roles += "<span class='fas fa-chess-queen fa-lg' title='Manager " + role.InterestLevel.ToString() + "'></span>";
+                            break;
+                        case "UI Designer":
+                            roles += "<span class='far fa-object-group fa-lg' title='UI Design " + role.InterestLevel.ToString() + "'></span>";
+                            break;
+                        case "Requirements Analyst":
+                            roles += "<span class='far fa-chart-bar fa-lg' title='Requirements Analyst " + role.InterestLevel.ToString() + "'></span>";
+                            break;
+                    }
+                }
+                return roles;
+            }
+        }
         public DateTime? InitialNotificationSentDate { get; set; }
         public DateTime? SurveySubmittedDate { get; set; }
         public string GUID { get; set; }
@@ -144,7 +217,22 @@ namespace GroupBuilder
         public List<Skill> Skills { get; set; }
         public List<ProgrammingLanguage> Languages { get; set; }
         public List<Course> PriorCourses { get; set; }
+        public List<Course> CurrentCourses { get; set; }
+        public string GPA { get
+            {
+                List<Course> priorCourses = PriorCourses.Where(x => x.Grade != null).ToList();
+                string formattedGPA = "";
 
+                if (priorCourses.Count > 0)
+                {
+                    double gpa = (double)priorCourses.Average(x => x.Grade);
+
+                    double roundedGpa = Math.Truncate(gpa * 100) / 100;
+
+                    formattedGPA = string.Format("{0:N2}", roundedGpa);
+                }
+                    return formattedGPA;
+            } }
         public Student()
         {
             Guid g;
@@ -154,6 +242,7 @@ namespace GroupBuilder
             Skills = new List<Skill>();
             Languages = new List<ProgrammingLanguage>();
             PriorCourses = new List<Course>();
+            CurrentCourses = new List<Course>();
         }
     }
 
@@ -234,31 +323,31 @@ namespace GroupBuilder
             int instructorID = 0;
 
             SqlConnection con = new SqlConnection(GrouperConnectionString.ConnectionString);
-            con.Open();
-            SqlCommand cmd = new SqlCommand(
-                @"SELECT *  
-                FROM Instructors    
-                WHERE DuckID = @DuckID;", con);
-            cmd.Parameters.AddWithValue("@DuckID", instructor.DuckID);
+            //con.Open();
+            //SqlCommand cmd = new SqlCommand(
+            //    @"SELECT *  
+            //    FROM Instructors    
+            //    WHERE DuckID = @DuckID;", con);
+            //cmd.Parameters.AddWithValue("@DuckID", instructor.DuckID);
 
-            instructorID = Convert.ToInt32(cmd.ExecuteScalar());
-            con.Close();
-            if (instructorID == 0)
-            {
-                cmd = new SqlCommand(
+            //instructorID = Convert.ToInt32(cmd.ExecuteScalar());
+            //con.Close();
+            //if (instructorID == 0)
+            //{
+                SqlCommand cmd = new SqlCommand(
                 @"INSERT INTO Instructors    
                     (DuckID, LastName, FirstName, IdentityUserID) 
                     VALUES 
                     (@DuckID, @LastName, @FirstName, @IdentityUserID);
                     SELECT SCOPE_IDENTITY();", con);
-                cmd.Parameters.AddWithValue("@DuckID", instructor.DuckID);
-                cmd.Parameters.AddWithValue("@LastName", instructor.LastName);
-                cmd.Parameters.AddWithValue("@FirstName", instructor.FirstName);
+                cmd.Parameters.AddWithValue("@DuckID", instructor.DuckID ??(Object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@LastName", instructor.LastName ?? (Object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@FirstName", instructor.FirstName ?? (Object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@IdentityUserID", instructor.IdentityUserID);
                 con.Open();
                 instructorID = Convert.ToInt32(cmd.ExecuteScalar());
                 con.Close();
-            }
+            //}
             return instructorID;
         }
 
@@ -281,7 +370,7 @@ namespace GroupBuilder
             }
             con.Close();
 
-            foreach (int id in instructorIDs)
+            foreach(int id in instructorIDs)
             {
                 Instructor instructor = GetInstructor(id);
                 if (instructor != null)
@@ -356,10 +445,10 @@ namespace GroupBuilder
                         IdentityUserID = @IdentityUserID 
                     WHERE InstructorID = @InstructorID;", con);
             cmd.Parameters.AddWithValue("@InstructorID", instructor.InstructorID);
-            cmd.Parameters.AddWithValue("@DuckID", instructor.DuckID);
-            cmd.Parameters.AddWithValue("@FirstName", instructor.FirstName);
-            cmd.Parameters.AddWithValue("@LastName", instructor.LastName);
-            cmd.Parameters.AddWithValue("@IdentityUserID", instructor.IdentityUserID);
+            cmd.Parameters.AddWithValue("@DuckID", instructor.DuckID ??(Object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@FirstName", instructor.FirstName ?? (Object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@LastName", instructor.LastName ?? (Object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@IdentityUserID", instructor.IdentityUserID ?? (Object)DBNull.Value);
 
             con.Open();
             cmd.ExecuteNonQuery();
@@ -852,7 +941,7 @@ namespace GroupBuilder
             {
                 course = new Course();
 
-                course.CourseID = GetSafeInteger(reader, "CourseID");
+                course.CourseID = courseID;
                 course.Code = GetSafeString(reader, "Code");
                 course.Name = GetSafeString(reader, "Name");
                 course.CoreCourseFlag = GetSafeBoolean(reader, "CoreCourseFlag");
@@ -896,24 +985,24 @@ namespace GroupBuilder
         }
 
 
-        public static void InsertStudentPriorCourse(int studentID, int courseID, double grade)
+        public static void InsertStudentPriorCourse(int studentID, int courseID, double? grade)
         {
             SqlConnection con = new SqlConnection(GrouperConnectionString.ConnectionString);
             con.Open();
             SqlCommand cmd = new SqlCommand(
                 @"SELECT CourseID  
-                FROM Students_CompletedCourses     
+                FROM Students_CoursesCompleted     
                 WHERE CourseID = @CourseID  
                 AND StudentID = @StudentID;", con);
             cmd.Parameters.AddWithValue("@StudentID", studentID);
             cmd.Parameters.AddWithValue("@CourseID", courseID);
 
-            courseID = Convert.ToInt32(cmd.ExecuteScalar());
+            int existingCourseID = Convert.ToInt32(cmd.ExecuteScalar());
             con.Close();
-            if (courseID == 0)
+            if (existingCourseID == 0)
             {
                 cmd = new SqlCommand(
-                @"INSERT INTO Students_CompletedCourses     
+                @"INSERT INTO Students_CoursesCompleted     
                     (StudentID, CourseID, Grade) 
                     VALUES 
                     (@StudentID, @CourseID, @Grade);", con);
@@ -952,6 +1041,106 @@ namespace GroupBuilder
             return courses;
         }
 
+        public static void DeleteStudentPriorCourse(int studentID, int courseID)
+        {
+            SqlConnection con = new SqlConnection(GrouperConnectionString.ConnectionString);
+            SqlCommand cmd = new SqlCommand(@"DELETE FROM Students_CoursesCompleted WHERE StudentID = @StudentID AND CourseID = @CourseID;", con);
+            cmd.Parameters.AddWithValue("@StudentID", studentID);
+            cmd.Parameters.AddWithValue("@CourseID", courseID);
+            con.Open();
+            cmd.ExecuteNonQuery();
+            con.Close();
+        }
+
+        public static void DeleteStudentPriorCourses(int studentID)
+        {
+            SqlConnection con = new SqlConnection(GrouperConnectionString.ConnectionString);
+            SqlCommand cmd = new SqlCommand(@"DELETE FROM Students_CoursesCompleted WHERE StudentID = @StudentID;", con);
+            cmd.Parameters.AddWithValue("@StudentID", studentID);
+            con.Open();
+            cmd.ExecuteNonQuery();
+            con.Close();
+        }
+
+        #endregion
+
+        #region Current Courses
+
+        public static void InsertStudentCurrentCourse(int studentID, int courseID)
+        {
+            SqlConnection con = new SqlConnection(GrouperConnectionString.ConnectionString);
+            con.Open();
+            SqlCommand cmd = new SqlCommand(
+                @"SELECT CourseID  
+                FROM Students_EnrolledCourses      
+                WHERE CourseID = @CourseID  
+                AND StudentID = @StudentID;", con);
+            cmd.Parameters.AddWithValue("@StudentID", studentID);
+            cmd.Parameters.AddWithValue("@CourseID", courseID);
+
+            int existingCourseID = Convert.ToInt32(cmd.ExecuteScalar());
+            con.Close();
+            if (existingCourseID == 0)
+            {
+                cmd = new SqlCommand(
+                @"INSERT INTO Students_EnrolledCourses      
+                    (StudentID, CourseID) 
+                    VALUES 
+                    (@StudentID, @CourseID);", con);
+                cmd.Parameters.AddWithValue("@StudentID", studentID);
+                cmd.Parameters.AddWithValue("@CourseID", courseID);
+                con.Open();
+                cmd.ExecuteNonQuery();
+                con.Close();
+            }
+        }
+
+        public static List<Course> GetStudentCurrentCourses(int studentID)
+        {
+            List<Course> courses = new List<Course>();
+
+            SqlConnection con = new SqlConnection(GrouperConnectionString.ConnectionString);
+            SqlCommand cmd = new SqlCommand(@"SELECT c.* FROM Students_EnrolledCourses sec JOIN Courses c ON sec.CourseID = c.CourseID WHERE sec.StudentID = @StudentID ORDER BY c.Code;", con);
+            cmd.Parameters.AddWithValue("@StudentID", studentID);
+            con.Open();
+            SqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                Course course = new Course();
+
+                course.CourseID = GetSafeInteger(reader, "CourseID");
+                course.Name = GetSafeString(reader, "Name");
+                course.Code = GetSafeString(reader, "Code");
+
+                courses.Add(course);
+
+            }
+            con.Close();
+
+            return courses;
+        }
+
+        public static void DeleteStudentCurrentCourse(int studentID, int courseID)
+        {
+            SqlConnection con = new SqlConnection(GrouperConnectionString.ConnectionString);
+            SqlCommand cmd = new SqlCommand(@"DELETE FROM Students_EnrolledCourses WHERE StudentID = @StudentID AND CourseID = @CourseID;", con);
+            cmd.Parameters.AddWithValue("@StudentID", studentID);
+            cmd.Parameters.AddWithValue("@CourseID", courseID);
+            con.Open();
+            cmd.ExecuteNonQuery();
+            con.Close();
+        }
+
+        public static void DeleteStudentCurrentCourses(int studentID)
+        {
+            SqlConnection con = new SqlConnection(GrouperConnectionString.ConnectionString);
+            SqlCommand cmd = new SqlCommand(@"DELETE FROM Students_EnrolledCourses WHERE StudentID = @StudentID;", con);
+            cmd.Parameters.AddWithValue("@StudentID", studentID);
+            con.Open();
+            cmd.ExecuteNonQuery();
+            con.Close();
+        }
+
         #endregion
 
         #region Students
@@ -975,24 +1164,19 @@ namespace GroupBuilder
             {
                 cmd = new SqlCommand(
                 @"INSERT INTO Students    
-                    (DuckID, InstructorCourseID, LastName, FirstName, PreferredName, UOID, OutgoingLevel, DevelopmentExperience, LearningExpectations, GUID, SurveySubmittedDate) 
+                    (DuckID, InstructorCourseID, LastName, FirstName, PreferredName, UOID, OutgoingLevel, EnglishSecondLanguageFlag, NativeLanguage, DevelopmentExperience, LearningExpectations, GUID, SurveySubmittedDate) 
                     VALUES 
-                    (@DuckID, @InstructorCourseID, @LastName, @FirstName, @PreferredName, @UOID, @OutgoingLevel, @DevelopmentExperience, @LearningExpectations, @GUID, @SurveySubmittedDate);
+                    (@DuckID, @InstructorCourseID, @LastName, @FirstName, @PreferredName, @UOID, @OutgoingLevel, @EnglishSecondLanguageFlag, @NativeLanguage, @DevelopmentExperience, @LearningExpectations, @GUID, @SurveySubmittedDate);
                     SELECT SCOPE_IDENTITY();", con);
                 cmd.Parameters.AddWithValue("@DuckID", student.DuckID ?? (Object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@InstructorCourseID", student.InstructorCourseID);
                 cmd.Parameters.AddWithValue("@LastName", student.LastName ?? (Object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@FirstName", student.FirstName ?? (Object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@PreferredName", student.PreferredName ?? (Object)DBNull.Value);
-                if (student.UOID > 0)
-                {
-                    cmd.Parameters.AddWithValue("@UOID", student.UOID);
-                }
-                else
-                {
-                    cmd.Parameters.AddWithValue("@UOID", (Object)DBNull.Value);
-                }
+                cmd.Parameters.AddWithValue("@UOID", student.UOID ?? (Object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@OutgoingLevel", student.OutgoingLevel ?? (Object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@EnglishSecondLanguageFlag", student.EnglishSecondLanguageFlag ?? (Object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@NativeLanguage", student.NativeLanguage ?? (Object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@DevelopmentExperience", student.DevelopmentExperience ?? (Object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@LearningExpectations", student.LearningExpectations ?? (Object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@GUID", student.GUID ?? (Object)DBNull.Value);
@@ -1024,6 +1208,8 @@ namespace GroupBuilder
                 student.LastName = GetSafeString(reader, "LastName");
                 student.PreferredName = GetSafeString(reader, "PreferredName");
                 student.UOID = GetSafeInteger(reader, "UOID");
+                student.EnglishSecondLanguageFlag = GetSafeBoolean(reader, "EnglishSecondLanguageFlag");
+                student.NativeLanguage = GetSafeString(reader, "NativeLanguage");
                 student.DevelopmentExperience = GetSafeString(reader, "DevelopmentExperience");
                 student.LearningExpectations = GetSafeString(reader, "LearningExpectations");
                 student.InitialNotificationSentDate = GetSafeDateTime(reader, "InitialNotificationSentDate");
@@ -1032,7 +1218,7 @@ namespace GroupBuilder
             }
             con.Close();
 
-            if (student != null)
+            if(student != null)
             {
                 student.PriorCourses = GetStudentPriorCourses(student.StudentID);
                 student.Languages = GetStudentLanguages(student.StudentID);
@@ -1085,7 +1271,7 @@ namespace GroupBuilder
             foreach (int studentID in studentIDs)
             {
                 Student student = GrouperMethods.GetStudent(studentID);
-                if (student != null)
+                if(student != null)
                 {
                     students.Add(student);
                 }
@@ -1121,6 +1307,35 @@ namespace GroupBuilder
             return students;
         }
 
+        public static List<Student> GetUngroupedStudents(int instructorCourseID)
+        {
+            List<Student> students = new List<Student>();
+            List<int> studentIDs = new List<int>();
+
+            SqlConnection con = new SqlConnection(GrouperConnectionString.ConnectionString);
+            SqlCommand cmd = new SqlCommand(@"SELECT * FROM Students WHERE InstructorCourseID = @InstructorCourseID AND StudentID NOT IN 
+                                                (SELECT StudentID FROM GroupStudents) ORDER BY FirstName, LastName;", con);
+            cmd.Parameters.AddWithValue("@InstructorCourseID", instructorCourseID);
+            con.Open();
+            SqlDataReader reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                int studentID = GetSafeInteger(reader, "StudentID");
+                studentIDs.Add(studentID);
+            }
+            con.Close();
+
+            foreach (int studentID in studentIDs)
+            {
+                Student student = GrouperMethods.GetStudent(studentID);
+                if (student != null)
+                {
+                    students.Add(student);
+                }
+            }
+            return students;
+        }
+
         public static void UpdateStudent(Student student)
         {
             SqlConnection con = new SqlConnection(GrouperConnectionString.ConnectionString);
@@ -1131,6 +1346,8 @@ namespace GroupBuilder
                         FirstName = @FirstName,
                         LastName = @LastName, 
                         PreferredName = @PreferredName, 
+                        EnglishSecondLanguageFlag = @EnglishSecondLanguageFlag, 
+                        NativeLanguage = @NativeLanguage, 
                         DevelopmentExperience = @DevelopmentExperience, 
                         LearningExpectations = @LearningExpectations, 
                         InitialNotificationSentDate = @InitialNotificationSentDate, 
@@ -1138,17 +1355,12 @@ namespace GroupBuilder
                     WHERE StudentID = @StudentID;", con);
             cmd.Parameters.AddWithValue("@StudentID", student.StudentID);
             cmd.Parameters.AddWithValue("@DuckID", student.DuckID ?? (Object)DBNull.Value);
-            if (student.UOID > 0)
-            {
-                cmd.Parameters.AddWithValue("@UOID", student.UOID);
-            }
-            else
-            {
-                cmd.Parameters.AddWithValue("@UOID", (Object)DBNull.Value);
-            }
+            cmd.Parameters.AddWithValue("@UOID", student.UOID ?? (Object)DBNull.Value);
             cmd.Parameters.AddWithValue("@FirstName", student.FirstName ?? (Object)DBNull.Value);
             cmd.Parameters.AddWithValue("@LastName", student.LastName ?? (Object)DBNull.Value);
             cmd.Parameters.AddWithValue("@PreferredName", student.PreferredName ?? (Object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@EnglishSecondLanguageFlag", student.EnglishSecondLanguageFlag ?? (Object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@NativeLanguage", student.NativeLanguage ?? (Object)DBNull.Value);
             cmd.Parameters.AddWithValue("@DevelopmentExperience", student.DevelopmentExperience ?? (Object)DBNull.Value);
             cmd.Parameters.AddWithValue("@LearningExpectations", student.LearningExpectations ?? (Object)DBNull.Value);
             cmd.Parameters.AddWithValue("@SurveySubmittedDate", student.SurveySubmittedDate ?? (Object)DBNull.Value);
@@ -1161,13 +1373,23 @@ namespace GroupBuilder
             DeleteStudentLanguages(student.StudentID);
             DeleteStudentRoleInterests(student.StudentID);
             DeleteStudentSkills(student.StudentID);
+            DeleteStudentPriorCourses(student.StudentID);
+            DeleteStudentCurrentCourses(student.StudentID);
 
+            foreach(Course course in student.PriorCourses)
+            {
+                InsertStudentPriorCourse(student.StudentID, course.CourseID, course.Grade);
+            }
+            foreach (Course course in student.CurrentCourses)
+            {
+                InsertStudentCurrentCourse(student.StudentID, course.CourseID);
+            }
             foreach (ProgrammingLanguage language in student.Languages)
             {
                 InsertStudentLanguage(student.StudentID, language.LanguageID, (int)language.ProficiencyLevel);
             }
 
-            foreach (Role role in student.InterestedRoles)
+            foreach(Role role in student.InterestedRoles)
             {
                 InsertStudentRoleInterest(student.StudentID, role.RoleID, (int)role.InterestLevel);
             }
@@ -1188,6 +1410,7 @@ namespace GroupBuilder
                 DELETE FROM Students_ProgrammingLanguages WHERE StudentID = @StudentID;
                 DELETE FROM Students_RoleInterests WHERE StudentID = @StudentID;
                 DELETE FROM Students_Skills WHERE StudentID = @StudentID;
+                DELETE FROM GroupStudents WHERE StudentID = @StudentID;
                 DELETE FROM Students WHERE StudentID = @StudentID;", con);
             cmd.Parameters.AddWithValue("@StudentID", studentID);
 
@@ -1211,10 +1434,16 @@ namespace GroupBuilder
                 WHERE InstructorID = @InstructorID 
                 AND CourseID = @CourseID 
                 AND TermNumber = @TermNumber 
-                AND Year = @Year;", con);
+                AND Year = @Year 
+                AND DaysOfWeek = @DaysOfWeek 
+                AND StartTime = @StartTime 
+                AND EndTime = @EndTime;", con);
             cmd.Parameters.AddWithValue("@InstructorID", course.InstructorID);
             cmd.Parameters.AddWithValue("@CourseID", course.CourseID);
             cmd.Parameters.AddWithValue("@TermNumber", course.TermNumber);
+            cmd.Parameters.AddWithValue("@DaysOfWeek", course.DaysOfWeek);
+            cmd.Parameters.AddWithValue("@StartTime", course.StartTime);
+            cmd.Parameters.AddWithValue("@EndTime", course.EndTime);
             cmd.Parameters.AddWithValue("@Year", course.Year);
 
             instructorCourseID = Convert.ToInt32(cmd.ExecuteScalar());
@@ -1223,21 +1452,53 @@ namespace GroupBuilder
             {
                 cmd = new SqlCommand(
                 @"INSERT INTO Instructors_CourseSections     
-                    (InstructorID, CourseID, TermNumber, TermName, Year) 
+                    (InstructorID, CourseID, TermNumber, TermName, Year, DaysOfWeek, StartTime, EndTime, CRN) 
                     VALUES 
-                    (@InstructorID, @CourseID, @TermNumber, @TermName, @Year);
+                    (@InstructorID, @CourseID, @TermNumber, @TermName, @Year, @DaysOfWeek, @StartTime, @EndTime, @CRN);
                     SELECT SCOPE_IDENTITY();", con);
                 cmd.Parameters.AddWithValue("@InstructorID", course.InstructorID);
                 cmd.Parameters.AddWithValue("@CourseID", course.CourseID);
                 cmd.Parameters.AddWithValue("@TermNumber", course.TermNumber);
-                cmd.Parameters.AddWithValue("@TermName", course.TermName);
+                cmd.Parameters.AddWithValue("@TermName", course.TermName ?? (Object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@DaysOfWeek", course.DaysOfWeek ?? (Object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@StartTime", course.StartTime ?? (Object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@EndTime", course.EndTime ?? (Object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@Year", course.Year);
-
+                cmd.Parameters.AddWithValue("@CRN", course.CRN ?? (Object)DBNull.Value);
                 con.Open();
                 instructorCourseID = Convert.ToInt32(cmd.ExecuteScalar());
                 con.Close();
             }
             return instructorCourseID;
+        }
+
+        public static void UpdateInstructorCourse(InstructorCourse instructorCourse)
+        {
+            SqlConnection con = new SqlConnection(GrouperConnectionString.ConnectionString);
+            SqlCommand cmd = new SqlCommand(
+                @"UPDATE Instructors 
+                    SET InstructorID = @InstructorID, 
+                        CourseID = @CourseID,
+                        TermNumber = @TermNumber,
+                        TermName = @TermName,
+                        Year = @Year, 
+                        DaysOfWeek = @DaysOfWeek, 
+                        StartTime = @StartTime, 
+                        EndTime = @EndTime, 
+                        CRN = @CRN;", con);
+            cmd.Parameters.AddWithValue("@InstructorID", instructorCourse.InstructorID);
+            cmd.Parameters.AddWithValue("@CourseID", instructorCourse.CourseID);
+            cmd.Parameters.AddWithValue("@TermNumber", instructorCourse.TermNumber);
+            cmd.Parameters.AddWithValue("@TermName", instructorCourse.TermName);
+            cmd.Parameters.AddWithValue("@Year", instructorCourse.Year);
+            cmd.Parameters.AddWithValue("@DaysOfWeek", instructorCourse.DaysOfWeek);
+            cmd.Parameters.AddWithValue("@StartTime", instructorCourse.StartTime);
+            cmd.Parameters.AddWithValue("@EndTime", instructorCourse.EndTime);
+            cmd.Parameters.AddWithValue("@CRN", instructorCourse.CRN);
+
+            con.Open();
+            cmd.ExecuteNonQuery();
+            con.Close();
         }
 
         public static List<InstructorCourse> GetInstructorCourses()
@@ -1279,12 +1540,12 @@ namespace GroupBuilder
             while (reader.Read())
             {
                 int instructorCourseID = GetSafeInteger(reader, "InstructorCourseID");
-
+               
                 instructorCourseIDs.Add(instructorCourseID);
             }
             con.Close();
 
-            foreach (int id in instructorCourseIDs)
+            foreach(int id in instructorCourseIDs)
             {
                 InstructorCourse course = GetInstructorCourse(id);
                 instructorCourses.Add(course);
@@ -1313,6 +1574,10 @@ namespace GroupBuilder
                 course.TermName = GetSafeString(reader, "TermName");
                 course.Year = GetSafeInteger(reader, "Year");
                 course.CurrentCourseSectionFlag = GetSafeBoolean(reader, "CurrentCourseSectionFlag");
+                course.DaysOfWeek = GetSafeString(reader, "DaysOfWeek");
+                course.StartTime = GetSafeDateTime(reader, "StartTime");
+                course.EndTime = GetSafeDateTime(reader, "EndTime");
+                course.CRN = GetSafeInteger(reader, "CRN");
             }
             con.Close();
 
@@ -1427,7 +1692,7 @@ namespace GroupBuilder
             }
             con.Close();
 
-            if (group != null)
+            if(group != null)
             {
                 group.Members = GetGroupMembers(group.GroupID);
             }
@@ -1438,7 +1703,8 @@ namespace GroupBuilder
         public static void DeleteGroup(int groupID)
         {
             SqlConnection con = new SqlConnection(GrouperConnectionString.ConnectionString);
-            SqlCommand cmd = new SqlCommand(@"DELETE FROM Groups WHERE GroupID = @GroupID;", con);
+            SqlCommand cmd = new SqlCommand(@"DELETE FROM GroupStudents WHERE GroupID = @GroupID;
+                                              DELETE FROM Groups WHERE GroupID = @GroupID;", con);
             cmd.Parameters.AddWithValue("@GroupID", groupID);
             con.Open();
             cmd.ExecuteNonQuery();
@@ -1463,11 +1729,11 @@ namespace GroupBuilder
             }
             con.Close();
 
-            foreach (int id in groupIDs)
+            foreach(int id in groupIDs)
             {
                 Group group = GetGroup(id);
-
-                if (group != null)
+                
+                if(group != null)
                 {
                     groups.Add(group);
                 }
@@ -1476,20 +1742,19 @@ namespace GroupBuilder
             return groups;
         }
 
-        public static int InsertGroupMember(int groupID, int studentID)
+        public static void InsertGroupMember(int groupID, int studentID)
         {
             SqlConnection con = new SqlConnection(GrouperConnectionString.ConnectionString);
-            con.Open();
             SqlCommand cmd = new SqlCommand(
-                @"SELECT * FROM GroupStudents 
+                @"SELECT GroupID FROM GroupStudents 
                 WHERE GroupID = @GroupID 
                 AND StudentID = @StudentID;", con);
             cmd.Parameters.AddWithValue("@GroupID", groupID);
             cmd.Parameters.AddWithValue("@StudentID", studentID);
             con.Open();
-            var exists = cmd.ExecuteScalar();
+            int existingGroupID = Convert.ToInt32(cmd.ExecuteScalar());
             con.Close();
-            if (exists == null)
+            if (existingGroupID == 0)
             {
                 cmd = new SqlCommand(
                 @"INSERT INTO GroupStudents      
@@ -1498,28 +1763,23 @@ namespace GroupBuilder
                     (@GroupID, @StudentID);", con);
                 cmd.Parameters.AddWithValue("@GroupID", groupID);
                 cmd.Parameters.AddWithValue("@StudentID", studentID);
-
                 con.Open();
-                groupID = Convert.ToInt32(cmd.ExecuteScalar());
+                cmd.ExecuteNonQuery();
                 con.Close();
             }
-            return groupID;
         }
 
-        public static void DeleteGroupMember(int groupID, int studentID)
+        public static void DeleteGroupMember(int studentID)
         {
             SqlConnection con = new SqlConnection(GrouperConnectionString.ConnectionString);
-            con.Open();
             SqlCommand cmd = new SqlCommand(
-                @"DELETE FROM GroupStudents 
-                WHERE GroupID = @GroupID 
-                AND StudentID = @StudentID;", con);
-            cmd.Parameters.AddWithValue("@GroupID", groupID);
+                @"DELETE FROM GroupStudents WHERE StudentID = @StudentID;", con);
+            //cmd.Parameters.AddWithValue("@GroupID", groupID);
             cmd.Parameters.AddWithValue("@StudentID", studentID);
             con.Open();
             cmd.ExecuteNonQuery();
             con.Close();
-
+           
         }
 
         public static List<Student> GetGroupMembers(int groupID)
