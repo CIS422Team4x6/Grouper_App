@@ -11,8 +11,10 @@ namespace GrouperApp
 {
     public partial class _Default : Page
     {
-        private static bool TEST_FLAG = false;
+        //Used for testing page w/o an actual student
+        private static bool TEST_FLAG = true;
 
+        //GUID is a unique identifier for each student.
         private string _GUID;
         protected string GUID
         {
@@ -31,6 +33,7 @@ namespace GrouperApp
             }
         }
 
+        //Object representing student's information
         private Student _Student;
         protected Student ThisStudent
         {
@@ -56,8 +59,10 @@ namespace GrouperApp
             }
         }
 
+        //This executes whenever the page is loaded (or re-loaded)
         protected void Page_Load(object sender, EventArgs e)
         {
+            //instantiate the student object
             if (ThisStudent == null)
             {
                 ThisStudent = new Student();
@@ -65,29 +70,37 @@ namespace GrouperApp
 
             if (!TEST_FLAG)
             {
-                if (ThisStudent.SurveySubmittedDate != null)
+                //If the GUID does not idicate a valid student, redirect
+                if ((ThisStudent.SurveySubmittedDate != null) || (GUID == "") || (GUID == null))
                 {
                     Response.Redirect("Oops.aspx");
                 }
             }
 
+            //Only do these things the firsrt time the page loads (not on post-backs)
             if (!IsPostBack)
             {
+                //Fill out name information
                 FirstNameLabel.Text = ThisStudent.FirstName;
                 LastNameLabel.Text = ThisStudent.LastName;
                 PreferedNameTextBox.Text = ThisStudent.FirstName;
 
+                //Bind data for drop-down repeaters
                 ClassesRepeater_BindRepeater();
                 RolesRepeater_BindRepeater();
                 LanguagesRepeater_BindRepeater();
                 SkillsRepeater_BindRepeater();
-
+                
+                //Bind data for current courses section
                 CurrentCoursesDropDownList.DataSource = GrouperMethods.GetCourses();
                 CurrentCoursesDropDownList.DataBind();
+                CurrentCoursesGridView.DataSource = null;
+                CurrentCoursesGridView.DataBind();
             }
 
         }
 
+        //Bind data for previous classes dropdowns
         protected void ClassesRepeater_BindRepeater()
         {
             List<Course> courses = GrouperMethods.GetCourses().Where(x => x.CoreCourseFlag == true).ToList();
@@ -96,6 +109,7 @@ namespace GrouperApp
             ClassesRepeater.DataBind();
         }
 
+        //Bind data for role interest dropdowns
         protected void RolesRepeater_BindRepeater()
         {
             List<Role> roles = GrouperMethods.GetRoles();
@@ -105,6 +119,7 @@ namespace GrouperApp
 
         }
 
+        //Bind data for Language skill dropdowns
         protected void LanguagesRepeater_BindRepeater()
         {
             List<ProgrammingLanguage> languages = GrouperMethods.GetLanguages();
@@ -113,6 +128,7 @@ namespace GrouperApp
             LanguagesRepeater.DataBind();
         }
 
+        //Bind data for personal skill dropdowns
         protected void SkillsRepeater_BindRepeater()
         {
             List<Skill> skills = GrouperMethods.GetSkills();
@@ -121,6 +137,7 @@ namespace GrouperApp
             SkillsRepeater.DataBind();
         }
 
+        //Function triggered when submit button clicked
         protected void SubmitLinkButton_Click(object sender, EventArgs e)
         {
             Student student = ThisStudent;
@@ -132,7 +149,12 @@ namespace GrouperApp
             student.PreferredName = PreferedNameTextBox.Text;
 
             //Set UOID
-            student.UOID = int.Parse(UOIDTextBox.Text);
+
+            int uoid;
+            if(int.TryParse(UOIDTextBox.Text.Trim(), out uoid))
+            {
+                student.UOID = uoid;
+            }
 
             //Set Primary/Secondary language info
             if (SecondLanguageDropDownList.SelectedIndex > 0)
@@ -158,10 +180,10 @@ namespace GrouperApp
                 Course course = GrouperMethods.GetCourse(courseID);
 
                 DropDownList courseGradeDropDownList = (DropDownList)courseItem.FindControl("GradeDropDownList");
-                int grade = int.Parse(courseGradeDropDownList.SelectedValue);
 
-                if (grade > 0)
+                if (courseGradeDropDownList.SelectedIndex > 0)
                 {
+                    int grade = int.Parse(courseGradeDropDownList.SelectedValue);
                     course.Grade = grade;
                     student.PriorCourses.Add(course);
                 }
@@ -237,12 +259,13 @@ namespace GrouperApp
             Response.Redirect("ThankYou.aspx" + idString);
         }
 
+        //Function triggered when student selects different concurrent class from dropdown
         protected void CurrentCoursesDropDownList_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (CurrentCoursesDropDownList.SelectedIndex > 0)
             {
+                //Figure out which course
                 int courseID = int.Parse(CurrentCoursesDropDownList.SelectedValue);
-
                 Course course = GrouperMethods.GetCourse(courseID);
                 
                 if (ViewState["CurrentCourses"] == null)
@@ -260,39 +283,48 @@ namespace GrouperApp
                     }
                 }
 
+                //Add selected course to gridview
                 ((List<Course>)ViewState["CurrentCourses"]).Add(course);
 
+                //Rebind
                 CurrentCoursesGridView.DataSource = (List<Course>)ViewState["CurrentCourses"];
                 CurrentCoursesGridView.DataBind();
             }
         }
 
+        //Function triggered when student changes selection for "English is Primary Language"
         protected void SecondLangDropDownList_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (SecondLanguageDropDownList.SelectedIndex > 0)
+            if (SecondLanguageDropDownList.SelectedIndex > 0) // They are indicating english is NOT their primary language
             {
+                //Prompt for primary langauge
                 SecondLangTextBoxLabel.Text = "Please enter your primary language:";
                 SecondLangTextBoxLabel.Visible = true;
                 SecondLangTextBox.Visible = true;
 
             }
-            else
+            else //They are indicating english IS their primary language
             {
+                //Hide primary language prompt
                 SecondLangTextBoxLabel.Visible = false;
                 SecondLangTextBox.Visible = false;
             }
         }
 
+        //Function triggered when studen de-selects a current course
         protected void CurrentCoursesGridView_RowCommand(object sender, GridViewCommandEventArgs e)
         {
             if (e.CommandName == "delete_course")
             {
+                //get course
                 int courseID = int.Parse(e.CommandArgument.ToString());
 
+                //remvove the course from the view
                 if (ViewState["CurrentCourses"] != null)
                 {
                     ((List<Course>)ViewState["CurrentCourses"]).RemoveAll(x => x.CourseID == courseID);
 
+                    //Rebind
                     CurrentCoursesGridView.DataSource = (List<Course>)ViewState["CurrentCourses"];
                     CurrentCoursesGridView.DataBind();
                 }

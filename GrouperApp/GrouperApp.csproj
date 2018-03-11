@@ -127,6 +127,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\Images\grouper.jpg" />
     <Content Include="Oops.aspx" />
     <Content Include="ThankYou.aspx" />
     <Content Include="Content\bootstrap.css" />

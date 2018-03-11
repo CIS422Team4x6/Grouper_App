@@ -6,21 +6,26 @@
 <head runat="server">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><%: Page.Title %> Grouper </title>
+    <title><%: Page.Title %> | Grouper</title>
 
     <asp:PlaceHolder runat="server">
         <%: Scripts.Render("~/bundles/modernizr") %>
     </asp:PlaceHolder>
-
     <webopt:bundlereference runat="server" path="~/Content/css" />
     <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
-
+    <link href="~/Content/fontawesome-all.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" />
+    <script type="text/javascript">
+        function ToTopOfPage(sender, args) {
+            setTimeout("window.scrollTo(0, 0)", 0);
+        }
+    </script>
 </head>
 <body>
     <form runat="server">
-        <asp:ScriptManager runat="server">
+        <asp:ScriptManager ID="ScriptManager1" EnablePageMethods="true" runat="server">
             <Scripts>
-                <%--To learn more about bundling scripts in ScriptManager see https://go.microsoft.com/fwlink/?LinkID=301884 --%>
+                <%--To learn more about bundling scripts in ScriptManager see http://go.microsoft.com/fwlink/?LinkID=301884 --%>
                 <%--Framework Scripts--%>
                 <asp:ScriptReference Name="MsAjaxBundle" />
                 <asp:ScriptReference Name="jquery" />
@@ -39,7 +44,7 @@
             </Scripts>
         </asp:ScriptManager>
 
-        <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="navbar navbar-fixed-top">
             <div class="container">
                 <div class="navbar-header">
                     <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -47,23 +52,24 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" runat="server" href="~/">Grouper</a>
                 </div>
                 <div class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
+                        <li><a style="padding: 5px 5px 10px 0px !important;" class="navbar-brand" runat="server" href="~/"><asp:Image ID="GrouperLogoImage" runat="server" ImageUrl="~/Content/Images/grouper.png" Width="65px"/></a></li>
+                        <li><a style="padding: 15px 0px 10px 0px !important;" runat="server" href="~/"><span style="font-size: 36px; font-weight: bold; font-style: italic; font-family: 'Open Sans'">Grouper</span><span style="font-size: 18px; font-family: 'Open Sans'; font-weight: 300;">&nbsp; Student Survey</span></a></li>
                     </ul>
                 </div>
             </div>
         </div>
         <div class="container body-content">
+            <br />
             <asp:ContentPlaceHolder ID="MainContent" runat="server">
             </asp:ContentPlaceHolder>
             <hr />
             <footer>
-                <p>&copy; <%: DateTime.Now.Year %> - 4X6 Productions </p>
+                <p class="text-center" style="font-family: 'Open Sans';">&copy; <%: DateTime.Now.Year %> - 4X6 Productions</p>
             </footer>
         </div>
-
     </form>
 </body>
 </html>

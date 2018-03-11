@@ -31,6 +31,15 @@ namespace GrouperApp {
         protected global::System.Web.UI.WebControls.Label LastNameLabel;
         
         /// <summary>
+        /// GeneralValidationSummary control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.ValidationSummary GeneralValidationSummary;
+        
+        /// <summary>
         /// PreferedNameTextBox control.
         /// </summary>
         /// <remarks>
@@ -47,6 +56,24 @@ namespace GrouperApp {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.TextBox UOIDTextBox;
+        
+        /// <summary>
+        /// UOIDRegExValidator control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.RegularExpressionValidator UOIDRegExValidator;
+        
+        /// <summary>
+        /// UOIDRequiredFieldValidator control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.RequiredFieldValidator UOIDRequiredFieldValidator;
         
         /// <summary>
         /// SecondLangDropDownLabel control.
@@ -148,6 +175,15 @@ namespace GrouperApp {
         protected global::System.Web.UI.WebControls.TextBox DevelopmentExperienceTextBox;
         
         /// <summary>
+        /// RegularExpressionValidator2 control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.RegularExpressionValidator RegularExpressionValidator2;
+        
+        /// <summary>
         /// LearningExpectationsTextBox control.
         /// </summary>
         /// <remarks>
@@ -155,6 +191,15 @@ namespace GrouperApp {
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.TextBox LearningExpectationsTextBox;
+        
+        /// <summary>
+        /// RegularExpressionValidator1 control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.RegularExpressionValidator RegularExpressionValidator1;
         
         /// <summary>
         /// SubmitLinkButton control.

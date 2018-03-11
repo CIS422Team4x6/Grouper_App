@@ -17,6 +17,25 @@ select{
     max-width: 280px;
 }
 
+.panel-default{
+    padding: 15px;
+}
+
+.navbar{
+    background-color: whitesmoke;
+}
+
+.navbar-nav a{
+    color: #00BFFF !important;
+}
+
+.navbar-nav{
+    font-weight: bold;
+}
+
+.small{
+    font-size: 0.75em;
+}
 
 /* Responsive: Portrait tablets and up */
 @media screen and (min-width: 768px) {
