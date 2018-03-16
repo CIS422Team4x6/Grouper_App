@@ -27,8 +27,8 @@
                     <div class="form-group">
                         <asp:Label runat="server" CssClass="control-label">UO Student ID: <span class="text-muted">(95*******)</span></asp:Label>
                         <asp:TextBox ID="UOIDTextBox" runat="server" CssClass="form-control" MaxLength="9"></asp:TextBox>
-                        <asp:RegularExpressionValidator ID="UOIDRegExValidator" runat="server" ControlToValidate="UOIDTextBox" ErrorMessage="Invalid UO Student ID" CssClass="text-danger" ValidationExpression="[9][5]\d{7}"></asp:RegularExpressionValidator>
-                        <asp:RequiredFieldValidator ID="UOIDRequiredFieldValidator" runat="server" ControlToValidate="UOIDTextBox" ErrorMessage="UO Student ID required field" CssClass="text-danger"></asp:RequiredFieldValidator>
+                        <asp:RegularExpressionValidator ID="UOIDRegExValidator" runat="server" Display="Dynamic" ControlToValidate="UOIDTextBox" ErrorMessage="Invalid UO Student ID" CssClass="text-danger" ValidationExpression="[9][5]\d{7}"></asp:RegularExpressionValidator>
+                        <asp:RequiredFieldValidator ID="UOIDRequiredFieldValidator" runat="server" Display="Dynamic" ControlToValidate="UOIDTextBox" ErrorMessage="UO Student ID required field" CssClass="text-danger"></asp:RequiredFieldValidator>
                     </div>
                 </div>
             </div>
@@ -114,7 +114,7 @@
     </div>
 
     <br />
-    <h4>Role Interests</h4>
+    <h4>Role Interests <asp:Label CssClass="text-muted small" runat="server">(Please express some interest in at least two roles)</asp:Label></h4>
     <%-- This section collects information about how interested the student is in different roles --%>
 
     <div class='panel panel-default'>
